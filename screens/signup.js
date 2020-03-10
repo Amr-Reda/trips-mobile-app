@@ -10,20 +10,43 @@ import {
   Image,
   Alert
 } from 'react-native';
+import {signup} from '../http'
 
 export default class SignUpView extends Component {
 
   constructor(props) {
     super(props);
     state = {
-      fullName: '',
+      name: '',
       email   : '',
-      password: 's',
+      password: '',
     }
   }
 
-  onClickListener = (viewId) => {
-    Alert.alert("Alert", "Button pressed "+viewId);
+  signup = async () => {
+    if (!this.state) return Alert.alert("Alert", "Full name is required!");
+    if (!this.state.email) return Alert.alert("Alert", "Email is required!");
+    if (!this.state.password) return Alert.alert("Alert", "Password is required!");
+    if (!this.validEmail()) return Alert.alert("Alert", "invalid email!");
+    
+    let res = await signup(this.state)
+
+    if (res.token) {
+      this.props.navigation.navigate({
+        name: 'Home',
+        params: {
+          token: res.token,
+          name: this.state.name
+        }
+      })
+      return
+    }
+    Alert.alert("something wrong!", res.message);
+  }
+
+  validEmail = () => {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(this.state.email);
   }
 
   render() {
@@ -35,7 +58,7 @@ export default class SignUpView extends Component {
               placeholder="Full name"
               keyboardType="email-address"
               underlineColorAndroid='transparent'
-              onChangeText={(fullName) => this.setState({fullName})}/>
+              onChangeText={(name) => this.setState({name})}/>
         </View>
 
         <View style={styles.inputContainer}>
@@ -56,7 +79,7 @@ export default class SignUpView extends Component {
               onChangeText={(password) => this.setState({password})}/>
         </View>
 
-        <TouchableHighlight style={[styles.buttonContainer, styles.signupButton]} onPress={() => this.onClickListener('sign_up')}>
+        <TouchableHighlight style={[styles.buttonContainer, styles.signupButton]} onPress={() => this.signup()}>
           <Text style={styles.signUpText}>Sign up</Text>
         </TouchableHighlight>
 

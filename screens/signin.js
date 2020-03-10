@@ -10,20 +10,41 @@ import {
   Image,
   Alert
 } from 'react-native';
+import {signin} from '../http'
 
 export default class SignUpView extends Component {
 
   constructor(props) {
     super(props);
     state = {
-      fullName: '',
       email   : '',
       password: '',
     }
   }
 
-  onClickListener = (viewId) => {
-    Alert.alert("Alert", "Button pressed "+viewId);
+  signin = async () => {
+    if (!this.state) return Alert.alert("Alert", "Email is required!");
+    if (!this.state.password) return Alert.alert("Alert", "Password is required!");
+    if (!this.validEmail()) return Alert.alert("Alert", "invalid email!");
+    
+    let res = await signin(this.state)
+
+    if (res.token) {
+      this.props.navigation.navigate({
+        name: 'Home',
+        params: {
+          token: res.token,
+          name: res.jsonUser.name
+        }
+      })
+      return
+    }
+    Alert.alert("something wrong!", res.message);
+  }
+
+  validEmail = () => {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(this.state.email);
   }
 
   render() {
@@ -47,7 +68,7 @@ export default class SignUpView extends Component {
               onChangeText={(password) => this.setState({password})}/>
         </View>
 
-        <TouchableHighlight style={[styles.buttonContainer, styles.signupButton]} onPress={() => this.onClickListener('sign_in')}>
+        <TouchableHighlight style={[styles.buttonContainer, styles.signupButton]} onPress={() => this.signin()}>
           <Text style={styles.signUpText}>Sign In</Text>
         </TouchableHighlight>
 
